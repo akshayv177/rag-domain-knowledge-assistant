@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+*.swp
+*.swo
+.vscode/
+
+# Secrets
+.env
+.env.*
+
+# Data (do not commit raw docs or vector DB)
+data/raw/
+data/vector_store/
+
+# Generic vector DB dirs (if used later)
+chroma/

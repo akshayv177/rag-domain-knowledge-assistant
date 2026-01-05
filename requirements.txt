@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+streamlit
+langchain
+langgraph
+chromadb
+qdrant-client
+faiss-cpu
+openai
+httpx
+pydantic
+python-dotenv
