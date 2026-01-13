@@ -57,3 +57,84 @@ Light Block B session focused on getting started with the RAG project (P3) and u
   - Verify that a Chroma index is persisted under `data/vector_store/`.
 - Then move on to designing `retrieval.py`:
   - `get_collection()`, `retrieve(query, k)`, and `answer(query)` using the stored index and LLM.
+
+
+# W3D1 – Block B (P3 RAG) – 05.01.26
+
+## Energy / Time
+- Energy: ~5/10
+- Time: ~90–120 min
+- Scope: Get ingestion working, confirm vector DB persistence, push repo.
+
+## What I did
+- Verified `rag-agents` env and project imports:
+  - `config.py` loads correctly and picks up `.env` (`docs_path`, `vector_db_path`, `OPENAI_API_KEY`).
+  - `ingest.py` imports cleanly after removing `langchain_community` and using `chromadb` directly.
+- Implemented and understood ingestion pipeline:
+  - `load_docs()` → walks `data/raw/` and loads `.txt` into `Document` objects with `metadata["source"]`.
+  - `split_docs()` → uses `RecursiveCharacterTextSplitter` to create overlapping chunks.
+  - `build_vector_store()` → uses `chromadb.PersistentClient` + `OpenAIEmbeddingFunction` to build a persistent Chroma collection under `data/vector_store/`.
+- Created a dummy doc (`data/raw/sample.txt`) and ran:
+  - `PYTHONPATH=src python scripts/dev_ingest.py`
+  - Output: `Loaded 1 raw docs`, `Split into 1 chunks`, `Vector store built & persisted at: data/vector_store`.
+  - Confirmed Chroma index files are present in `data/vector_store/`.
+- Added a minimal `.gitignore` to avoid committing:
+  - `.env` and other secrets.
+  - `data/raw/` (raw documents).
+  - `data/vector_store/` (vector DB artifacts).
+
+## Repo status
+- Initialised git repo at `~/dev/block-b/p3_rag_assistant`.
+- Created GitHub repo: `rag-domain-knowledge-assistant`.
+- Pushed initial commit with:
+  - `src/rag_assistant/config.py`, `ingest.py`
+  - `scripts/dev_ingest.py`
+  - `SESSION_LOG.md`, `.gitignore`, etc.
+- Verified that `.env`, raw docs, and vector DB files are NOT committed.
+
+## Next 2–3 steps (for next Block B)
+1. Implement `retrieval.py`:
+   - `get_collection()` → open Chroma collection from `data/vector_store/`.
+   - `retrieve(query, k=5)` → return top-k chunks with source + score.
+   - `answer(query)` → build prompt with retrieved chunks and call LLM.
+2. Add `scripts/dev_query.py`:
+   - Simple CLI to enter a query, print answer + sources.
+3. Start sketching `app.py` (FastAPI) interface:
+   - `POST /ask` → `{ query }` → `{ answer, sources }`.
+
+
+## W4D2 – Block B (P3 RAG) – Retrieval skeleton - 13.01.26
+
+### Energy / Time
+- Energy: ~5/10
+- Time: ~90–120 min
+- Scope: Retrieval skeleton + sanity script, no answer()/FastAPI yet.
+
+### What I did
+- Confirmed ingestion + Chroma index still working (`dev_ingest.py` on dummy UAV doc).
+- Implemented `retrieval.py`:
+  - `get_collection()` opens the persisted Chroma collection from `data/vector_store/` using `chromadb.PersistentClient` and `OpenAIEmbeddingFunction` (same embedding model as ingestion).
+  - `retrieve(query, k)`:
+    - Calls `collection.query` with `include=["documents", "metadatas", "distances"]`.
+    - Returns a list of dicts: `{ "text", "source", "score" }`.
+- Added `scripts/dev_query.py`:
+  - Takes a query from CLI or `input()`.
+  - Calls `retrieve(query, k=3)` and prints:
+    - raw results (debug line),
+    - formatted top-k list with score, source path, and snippet.
+- Sanity check:
+  - Ran `PYTHONPATH=src python scripts/dev_query.py "pre-flight checks"`.
+  - Got 1 result:
+    - `source = data/raw/sample.txt`
+    - `text = "This is a dummy UAV manual line about battery safety and pre-flight checks."`
+    - `score ≈ 0.9584`
+
+### Next steps (future Block B)
+1. Implement `answer(query)` in `retrieval.py`:
+   - Build prompt from retrieved chunks + query.
+   - Call LLM (`settings.llm_model` via OpenAI client).
+   - Return `{ "answer", "sources" }`.
+2. Add `scripts/dev_answer.py`:
+   - CLI that prints the final answer + cited sources.
+3. Start FastAPI `app.py` skeleton:
+   - `POST /ask` → `{ query }` → `{ answer, sources }`.
