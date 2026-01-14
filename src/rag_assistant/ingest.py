@@ -75,9 +75,14 @@ def build_vector_store(
         embedding_function=embedding_fn,
     )
 
-    # Clear existing entries so rebuild is deterministic
-    if collection.count() > 0:
-        collection.delete(where={})
+    # --- CLEAR EXISTING ENTRIES (Chroma 0.5+ compatible) ---
+    existing_count = collection.count()
+    if existing_count:
+        # Fetch only IDs to avoid pulling full docs/embeddings
+        existing = collection.get(include=[])
+        ids = existing.get("ids", [])
+        if ids:
+            collection.delete(ids=ids)
 
     ids: list[str] = []
     texts: list[str] = []
@@ -92,3 +97,4 @@ def build_vector_store(
         collection.add(ids=ids, documents=texts, metadatas=metadatas)
 
     return collection
+

@@ -103,7 +103,7 @@ Light Block B session focused on getting started with the RAG project (P3) and u
    - `POST /ask` → `{ query }` → `{ answer, sources }`.
 
 
-## W4D2 – Block B (P3 RAG) – Retrieval skeleton - 13.01.26
+## W4D2 - 13.01.26 – Block B (P3 RAG) – Retrieval skeleton 
 
 ### Energy / Time
 - Energy: ~5/10
@@ -138,3 +138,23 @@ Light Block B session focused on getting started with the RAG project (P3) and u
    - CLI that prints the final answer + cited sources.
 3. Start FastAPI `app.py` skeleton:
    - `POST /ask` → `{ query }` → `{ answer, sources }`.
+
+
+## W4D3 - 14.01.26 – Block B (P3 RAG) – End-to-end answer() 
+
+### What I did
+- Updated ingestion to be compatible with latest Chroma (`delete(ids=...)` instead of `where={}`).
+- Created richer dummy UAV manual in `data/raw/sample.txt`.
+- Implemented `answer(query)` on top of `retrieve()`:
+  - Builds grounded prompt from top-k chunks.
+  - Uses OpenAI chat completions via `settings.llm_model`.
+  - Returns `{ answer, sources }` with snippets and scores.
+- Added `scripts/dev_answer.py` CLI:
+  - Runs a query, prints answer + sources.
+
+### Sanity check
+- Ran:
+
+  ```bash
+  PYTHONPATH=src python scripts/dev_ingest.py
+  PYTHONPATH=src python scripts/dev_answer.py "What pre-flight checks and battery safety steps are required before take-off?"
