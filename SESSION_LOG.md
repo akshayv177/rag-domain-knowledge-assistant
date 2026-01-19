@@ -158,3 +158,42 @@ Light Block B session focused on getting started with the RAG project (P3) and u
   ```bash
   PYTHONPATH=src python scripts/dev_ingest.py
   PYTHONPATH=src python scripts/dev_answer.py "What pre-flight checks and battery safety steps are required before take-off?"
+
+
+## W5D1 – 19.01.26 – Block B (P3 RAG) – Eval/Logging Harness v0
+What I did:
+- Created scripts/eval_run.py as a v0 eval harness that:
+  - Iterates over a 10-question UAV pre-flight eval set (EVAL_ITEMS with id, query, expected_answer).
+  - Calls answer(query, k_ctx=top_k, max_output_tokens=...) for each question.
+  - Measures latency per query and normalises retrieved chunks into [{rank, source, score, snippet}, ...].
+  - Writes one JSON object per query to data/logs/eval_runs/YYYY-MM-DD.jsonl.
+- Added helper functions:
+  - _utc_iso_now() to generate UTC ISO timestamps for runs and per-query events.
+  - _get_log_path() to create/resolve the daily log file under data/logs/eval_runs/.
+- Logged per-query fields:
+- run_date, run_id, eval_id, index, query, timestamp, top_k, latency_s,
+  answer, expected_answer, retrieved, answer_label, retrieval_label.
+- Initialised simple label counters for:
+  - answer_label_counts = {correct, partial, wrong, oos, unlabeled}.
+  - retrieval_label_counts = {ok, bad, unlabeled}.
+- Wired in the real 10-question UAV pre-flight eval set from Block A:
+  - Direct fact, paraphrased fact, procedural how-to, multi-hop, definition + example,
+    out-of-scope, ambiguous order, shorthand/typo, tricky negative.
+- Fixed small issues while wiring it up:
+  - datetime.now(time.utc) → datetime.now(timezone.utc).
+  - Typing bug (Dict[...] = {...}) → proper annotated dicts (var: Dict[...] = {...}).
+  - Made expected_answer access robust via item.get("expected_answer", "") to avoid KeyError.
+- Ran:
+    PYTHONPATH=src python scripts/eval_run.py
+- Observed console output:
+
+    Running eval run with 10 questions...Logging to: data/logs/eval_runs/2026-01-19.jsonl
+    === Eval summary (labels may be placeholders) ===
+    Total questions: 10
+    Answers – correct: 0, partial: 0, wrong: 0, oos: 0, unlabeled: 10
+    Retrieval – ok: 0, bad: 0, unlabeled: 10
+    Log file: data/logs/eval_runs/2026-01-19.jsonl
+    Verified that data/logs/eval_runs/2026-01-19.jsonl exists and contains valid JSONL records with:
+    eval_id, query, expected_answer, answer,
+    retrieved (rank, source, score, snippet),
+    placeholder labels (answer_label = "unlabeled", retrieval_label = "unlabeled").
