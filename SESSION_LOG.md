@@ -197,3 +197,17 @@ What I did:
     eval_id, query, expected_answer, answer,
     retrieved (rank, source, score, snippet),
     placeholder labels (answer_label = "unlabeled", retrieval_label = "unlabeled").
+
+
+### W6D3 - 28.01.26 Failure buckets v0 
+Buckets:
+- retrieval_miss: relevant chunk not retrieved
+- chunking_issue: doc exists but split/snippets miss key info
+- grounding_failure: hallucination / uses info not in context
+- instruction_following: fails OOS behavior or constraints
+- ambiguity_handling: ambiguous Q interpreted wrongly
+- formatting: correct but messy/unusable
+- other: misc
+
+Today: labeled 5 eval items using scripts/eval_label.py → output JSONL in data/logs/eval_runs_labeled/
+Next: label remaining 5; then pick top 1–2 buckets to address (likely retrieval_miss/chunking_issue first).
