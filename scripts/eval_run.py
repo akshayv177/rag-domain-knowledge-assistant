@@ -89,21 +89,27 @@ def _utc_iso_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _utc_compact_now() -> str:
+    """
+    Return UTC time in a compact, filename-safe format: HHMMSSZ (e.g., 062608Z).
+    """
+    return datetime.now(timezone.utc).strftime("%H%M%SZ")
+
+
 def _get_log_path(run_id: str) -> Path:
     """
     Compute and create (if needed) the log file path for this eval run.
 
     Logs are written to:
-        data/logs/eval_runs/YYYY-MM-DD__<run_id_short>.jsonl
+        data/logs/eval_runs/YYYY-MM-DD__HHMMSSZ.jsonl
 
-    This prevents accidental duplication when you run eval multiple times
-    in the same day, because each run gets its own file.
+    The run_id remains inside each JSON record; the filename is just a readable handle.
     """
     base = Path("data/logs/eval_runs")
     base.mkdir(parents=True, exist_ok=True)
     today = datetime.now(timezone.utc).date().isoformat()  # YYYY-MM-DD
-    run_id_short = run_id.replace(":", "").replace("-", "").replace(".", "")
-    return base / f"{today}__{run_id_short}.jsonl"
+    t = _utc_compact_now()
+    return base / f"{today}__{t}.jsonl"
 
 
 # Core eval runner
