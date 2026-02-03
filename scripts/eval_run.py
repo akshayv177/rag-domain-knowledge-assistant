@@ -89,18 +89,21 @@ def _utc_iso_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _get_log_path() -> Path:
+def _get_log_path(run_id: str) -> Path:
     """
-    Compute and create (if needed) the log file path for today's eval run
+    Compute and create (if needed) the log file path for this eval run.
+
     Logs are written to:
-        data/logs/eval_runs/YYYY-MM-DD.jsonl
-    
-    Each line is one JSON object for a single query
-    """ 
+        data/logs/eval_runs/YYYY-MM-DD__<run_id_short>.jsonl
+
+    This prevents accidental duplication when you run eval multiple times
+    in the same day, because each run gets its own file.
+    """
     base = Path("data/logs/eval_runs")
     base.mkdir(parents=True, exist_ok=True)
-    today = datetime.now(timezone.utc).date().isoformat()     # YYYY-MM-DD
-    return base / f"{today}.jsonl"
+    today = datetime.now(timezone.utc).date().isoformat()  # YYYY-MM-DD
+    run_id_short = run_id.replace(":", "").replace("-", "").replace(".", "")
+    return base / f"{today}__{run_id_short}.jsonl"
 
 
 # Core eval runner
@@ -118,8 +121,9 @@ def run_eval(top_k: int = 5, max_output_tokens: int = 400) -> Path:
     
     It also prints a simple summary with counts of labels (currently all 'unlabeled').
     """
-    log_path = _get_log_path()
+    
     run_id = _utc_iso_now()
+    log_path = _get_log_path(run_id)
 
     # Simple label counters - all 'unlabeled' for v0, but structure is ready
     answer_label_counts: Dict[str, int] = {
@@ -138,7 +142,7 @@ def run_eval(top_k: int = 5, max_output_tokens: int = 400) -> Path:
     print(f"Running eval run with {len(EVAL_ITEMS)} questions...")
     print(f"Logging to: {log_path}")
 
-    with log_path.open("a", encoding="utf-8") as f:
+    with log_path.open("w", encoding="utf-8") as f:
         for idx, item in enumerate(EVAL_ITEMS):
             eval_id = item["id"]
             query = item["query"].strip()
